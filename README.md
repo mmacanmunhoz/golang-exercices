@@ -1,6 +1,6 @@
 # Platform Engineering CLI - Learning Project
 
-Um projeto educacional focado em **estruturas básicas de CLI** em Go, demonstrando **boas práticas** para interfaces de **engenharia de plataforma**.
+Um projeto educacional focado em **estruturas básicas de CLI** em Go, demonstrando **boas práticas** para interfaces.
 
 ## Objetivo
 
