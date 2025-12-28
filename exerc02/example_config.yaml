@@ -1,0 +1,139 @@
+servers:
+  - name: httpbin-1
+    host: httpbin.org
+    healthcheck: "/status/200"
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+  - name: httpbin-2
+    host: httpbin.org
+    healthcheck: "/get"
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+  - name: httpbin-3
+    host: httpbin.org
+    healthcheck: "/uuid"
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+  - name: httpbin-4
+    host: httpbin.org
+    healthcheck: "/ip"
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+  - name: httpbin-5
+    host: httpbin.org
+    healthcheck: "/status/204"
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+  - name: httpbin-6
+    host: httpbin.org
+    healthcheck: "/delay/1"
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+  - name: httpbin-7
+    host: httpbin.org
+    healthcheck: "/anything/health"
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+
+  - name: httpbin-8
+    host: httpbin.org
+    healthcheck: "/status/999"  
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+  - name: httpbin-9
+    host: httpbin.org
+    healthcheck: "/status/4180"  
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+  - name: httpbin-10
+    host: httpbin.org
+    healthcheck: "/this-path-does-not-exist" 
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+  - name: httpbin-11
+    host: httpbin.org
+    healthcheck: "status/200"   
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+  - name: httpbin-12
+    host: httpbin.org
+    healthcheck: "/status/not-a-number" 
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+  - name: httpbin-13
+    host: httpbin.org
+    healthcheck: "/delay/9999"   
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+  - name: httpbin-14
+    host: httpbin.org
+    healthcheck: ""              
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+  - name: httpbin-15
+    host: httpbin.org
+    healthcheck: "/status/500"  
+    port: 443
+    replicas: 3
+    protocol: https
+    
+
+database:
+  host: localhost
+  port: 5432
+  user: admin
+  password: secret
+
+
+websites:
+  - name: "Google"
+    url: https://www.example.com
+    max_response_time: 2000
+  - name: "GitHub"
+    url: "https://github.com"
+    max_response_time: 3000
+  - name: "Stack Overflow"
+    url: "https://stackoverflow.com"
+    max_response_time: 2500
