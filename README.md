@@ -58,8 +58,8 @@ go run main.go server --file example_config.yaml
 
 ```bash
 cd exerc02
-go run main.go health --file example_config.yaml    # Health checking
-go run main.go parse --file example_config.yaml     # Config parsing
+go run main.go health --file example_config.yaml   
+go run main.go response --file example_config.yaml  
 ```
 
 **Conceitos:**
