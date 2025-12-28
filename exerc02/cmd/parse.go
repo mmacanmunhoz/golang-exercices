@@ -191,7 +191,7 @@ func AsyncResponseTime(wg *sync.WaitGroup, webservers <-chan config.WebsiteConfi
 				Timestamp:     time.Now().Format(time.RFC3339),
 			}
 			jsonData, _ := json.Marshal(result)
-			fmt.Printf("Health Result: %s\n", jsonData)
+			fmt.Printf("Response Result: %s\n", jsonData)
 
 		}
 

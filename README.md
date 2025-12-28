@@ -68,3 +68,18 @@ go run main.go response --file example_config.yaml
 - Performance monitoring
 - JSON structured output
 - Context timeout (5s)
+
+
+## Testes
+
+Executar todos os testes:
+
+```bash
+go test ./...
+```
+
+Executar testes com detalhes:
+
+```bash
+go test ./config -v
+```
