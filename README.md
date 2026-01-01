@@ -10,7 +10,8 @@ Este repositório contém exercícios progressivos que ensinam como construir **
 
 ### **Core Technologies**
 - **Go 1.24+** - Performance e concorrência nativa
-- **Cobra CLI** - Framework robusto para interfaces de linha de comando
+- **Cobra CLI** - Framework robusto para interfaces de linha de comando  
+- **Docker API** - Integração com containers e orquestração
 - **YAML/JSON** - Configuração estruturada e saída de dados
 
 ### **Concurrency Patterns**
@@ -20,18 +21,21 @@ Este repositório contém exercícios progressivos que ensinam como construir **
 - **Channels** - Comunicação segura entre goroutines
 
 ### **Platform Engineering Practices**
-- **Health Checking** - Monitoramento de serviços
-- **Configuration Management** - Parsing e validação de configs
-- **Structured Logging** - Saídas JSON para integração
+- **Health Checking** - Monitoramento de serviços e containers
+- **Configuration Management** - Parsing e validação de configs YAML/JSON
+- **Container Orchestration** - Deploy e gerenciamento de containers
+- **Structured Logging** - Saídas formatadas para integração
 - **Error Handling** - Tratamento robusto de falhas
-- **Performance Monitoring** - Medição de response time
+- **Performance Monitoring** - Medição de response time e health status
 
 ## Estrutura do Projeto
 
 ```
 plataformrocks/
-├── exerc<number>/      
-└── README.md         
+├── exerc01/           # Config Parser CLI + Docker
+├── exerc02/           # Health Checker + Performance Monitor  
+├── exerc03/           # Docker CLI Management Tool
+└── README.md          # Documentação geral
 ```
 
 ## Exercícios
@@ -68,6 +72,31 @@ go run main.go response --file example_config.yaml
 - Performance monitoring
 - JSON structured output
 - Context timeout (5s)
+
+---
+
+### **Exercício 03: Docker CLI Management**
+**Foco:** Docker API + Concorrência + Container Orchestration
+
+```bash
+cd exerc03
+go build -o docker-cli .
+./docker-cli container list
+./docker-cli container logs <container-id>
+./docker-cli container exec <container-id> <command>
+./docker-cli container deploy --file deploy.yaml
+./docker-cli container health <container-id>
+./docker-cli container stop
+```
+
+**Conceitos:**
+- Docker API integration
+- Worker pool para deployment paralelo
+- Container lifecycle management
+- YAML configuration parsing
+- Health monitoring
+- Command execution em containers
+- Port binding e network configuration
 
 
 ## Testes

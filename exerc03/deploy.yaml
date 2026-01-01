@@ -1,0 +1,32 @@
+servers:
+  - name: "nginx-web-app"
+    image: "nginx:1.21.4"
+    ports:
+      "80/tcp": "8080"
+      "443/tcp": "8443"
+    env:
+      - "NGINX_HOST=localhost"
+      - "NGINX_PORT=80"
+      - "NGINX_WORKER_PROCESSES=auto"
+    volumes:
+      - "/host/nginx/html:/usr/share/nginx/html:ro"
+      - "/host/nginx/conf:/etc/nginx/conf.d:ro"
+      - "/host/logs:/var/log/nginx:rw"
+    networks:
+      - "bridge"
+      - "web-network"
+
+  - name: "redis-cache"
+    image: "redis:7.0-alpine"
+    ports:
+      "6379/tcp": "6379"
+    env:
+      - "REDIS_PASSWORD=mypassword123"
+      - "REDIS_MAXMEMORY=256mb"
+      - "REDIS_MAXMEMORY_POLICY=allkeys-lru"
+    volumes:
+      - "/host/redis/data:/data:rw"
+      - "/host/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf:ro"
+    networks:
+      - "bridge"
+      - "backend-network"
