@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # Exercício 01 - Config Parser
+  exerc01:
+    build:
+      context: ./exerc01
+      dockerfile: Dockerfile
+    image: platformrocks/exerc01:latest
+    container_name: exerc01-configparser
+    volumes:
+      - ./exerc01/example_config.yaml:/root/example_config.yaml:ro
+    command: ["parse", "example_config.yaml"]
+    networks:
+      - platformrocks
+
+  # Exercício 02 - Config Parser v2
+  exerc02:
+    build:
+      context: ./exerc02
+      dockerfile: Dockerfile
+    image: platformrocks/exerc02:latest
+    container_name: exerc02-configparser
+    volumes:
+      - ./exerc02/example_config.yaml:/root/example_config.yaml:ro
+    command: ["parse", "example_config.yaml"]
+    networks:
+      - platformrocks
+
+  # Exercício 03 - Docker CLI
+  exerc03:
+    build:
+      context: ./exerc03
+      dockerfile: Dockerfile
+    image: platformrocks/exerc03:latest
+    container_name: exerc03-docker-cli
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./exerc03/deploy.yaml:/root/deploy.yaml:ro
+    command: ["--help"]
+    networks:
+      - platformrocks
+
+  # Exercício 04 - Kubernetes CLI
+  exerc04-cli:
+    build:
+      context: ./exerc04
+      dockerfile: Dockerfile.cli
+    image: platformrocks/exerc04-cli:latest
+    container_name: exerc04-k8s-cli
+    volumes:
+      - ~/.kube:/root/.kube:ro  # Mount kubeconfig
+    command: ["k8s", "--help"]
+    networks:
+      - platformrocks
+
+  # Exercício 04 - Operator (for reference, usually deployed to k8s)
+  exerc04-operator:
+    build:
+      context: ./exerc04
+      dockerfile: Dockerfile
+    image: mmacanmunhoz/controller-demo:v1.0
+    container_name: exerc04-operator
+    command: ["--help"]
+    networks:
+      - platformrocks
+
+networks:
+  platformrocks:
+    driver: bridge
+
+volumes:
+  kubeconfig:
+    external: true

@@ -1,0 +1,44 @@
+# Multi-stage build for Kubernetes CLI
+FROM golang:1.25-alpine AS builder
+
+# Install git and ca-certificates
+RUN apk add --no-cache git ca-certificates
+
+# Set working directory
+WORKDIR /app
+
+# Copy go mod files
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build the CLI application (excluding operator code)
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o k8s-cli ./main.go
+
+# Final stage
+FROM alpine:latest
+
+# Install ca-certificates for Kubernetes API calls
+RUN apk --no-cache add ca-certificates
+
+# Set working directory
+WORKDIR /root/
+
+# Copy binary from builder stage
+COPY --from=builder /app/k8s-cli .
+
+# Make binary executable
+RUN chmod +x ./k8s-cli
+
+# Create .kube directory for kubeconfig
+RUN mkdir -p /root/.kube
+
+# Set entrypoint
+ENTRYPOINT ["./k8s-cli"]
+
+# Default command
+CMD ["k8s", "--help"]

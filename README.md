@@ -1,8 +1,8 @@
-# Platform Engineering CLI - Learning Project
+# Platform Rocks - Kubernetes & Go Learning Projects
 
-Um projeto educacional focado em **estruturas básicas de CLI** em Go, demonstrando **boas práticas** para interfaces.
+Este repositório contém uma série de exercícios práticos para aprender Kubernetes, Go, Docker e desenvolvimento de Operators.
 
-## Objetivo
+## 🚀 Projetos Incluídos
 
 Este repositório contém exercícios progressivos que ensinam como construir **ferramentas CLI robustas** para automação e monitoramento de infraestrutura, seguindo padrões da indústria.
 
