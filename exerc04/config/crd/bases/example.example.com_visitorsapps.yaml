@@ -39,7 +39,8 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
-    storage: true
+    storage: false     # v1 deprecated
+    deprecated: true   # Marcar como deprecated
     subresources:
       status: {}
   - name: v2
@@ -104,6 +105,6 @@ spec:
             x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
-    storage: false  # v1 ainda é storage por enquanto
+    storage: true   # v2 agora é storage version
     subresources:
       status: {}

@@ -320,6 +320,195 @@ required:
 
 ---
 
+## Estratégias de Versionamento de Operators
+
+### Problema: Chart Embutido na Imagem
+
+Como o Helm Chart é **copiado inteiro** para dentro da imagem Docker do operator via Dockerfile, cada evolução do chart requer uma nova imagem do operator.
+
+### Estratégia Recomendada: Múltiplas Imagens (MAIS PRÁTICA)
+
+**RECOMENDAÇÃO:** Esta abordagem é significativamente mais prática e segura para produção.
+
+Manter **imagens separadas** para cada versão major do operator/chart:
+
+```
+mmacanmunhoz/controller-demo:v1.0  # Chart v1 + CRD v1 only  
+mmacanmunhoz/controller-demo:v2.0  # Chart v2 + CRD v2 focus
+```
+
+**Por que é mais prática:**
+- Isolamento total entre versões (sem riscos de breaking changes)
+- Deploy e rollback simplificados (apenas troca de imagem)
+- Charts limpos sem código legacy
+- Facilita testes A/B e deployments side-by-side
+
+### Implementação Prática
+
+#### 1. Preparar Versão v1.0 (Baseline)
+
+```bash
+# Guardar versão v1 estável
+git tag v1.0-chart
+git push origin v1.0-chart
+
+# Build imagem final v1.0
+docker build -t mmacanmunhoz/controller-demo:v1.0 .
+docker push mmacanmunhoz/controller-demo:v1.0
+```
+
+#### 2. Evoluir para v2.0 (Breaking Changes)
+
+**a) Limpar values.yaml para v2:**
+```yaml
+# helm-charts/visitors-helm/values.yaml
+backend:
+  size: 3               # Valores otimizados para v2
+  version: "v1.2.0"     # Novo campo
+
+frontend:
+  title: "Enhanced Visitors Site v2"
+  replicas: 2           # Novo campo
+
+monitoring:             # Funcionalidade nova
+  enabled: true
+  metrics: true
+```
+
+**b) Atualizar CRD - v2 como storage:**
+```yaml
+# config/crd/bases/example.example.com_visitorsapps.yaml
+versions:
+- name: v1
+  served: true
+  storage: false     # v1 deprecated
+  deprecated: true
+  
+- name: v2
+  served: true  
+  storage: true      # v2 é storage version
+  schema: # ... schema aprimorado com validações
+```
+
+**c) Build nova imagem:**
+```bash
+docker build -t mmacanmunhoz/controller-demo:v2.0 .
+docker push mmacanmunhoz/controller-demo:v2.0
+```
+
+### Migration Strategy
+
+**NOTA:** Para produção, a estratégia de múltiplas imagens é mais segura e prática que tentar manter retrocompatibilidade complexa.
+
+#### Opção 1: Side-by-side (Recomendado)
+
+```bash
+# Cluster A: Continua com v1.0
+kubectl patch deployment exerc04-controller-manager \
+  -p '{"spec":{"template":{"spec":{"containers":[{"name":"manager","image":"mmacanmunhoz/controller-demo:v1.0"}]}}}}'
+
+# Cluster B: Migra para v2.0  
+kubectl patch deployment exerc04-controller-manager \
+  -p '{"spec":{"template":{"spec":{"containers":[{"name":"manager","image":"mmacanmunhoz/controller-demo:v2.0"}]}}}}'
+```
+
+#### Opção 2: In-place Migration
+
+```bash
+# 1. Deploy imagem v2.0 (com CRD suportando v1+v2)
+kubectl apply -k config/default
+
+# 2. Migrar CRs existentes v1 → v2
+kubectl get visitorsapps.v1.example.example.com -o yaml | \
+  sed 's/apiVersion: example.example.com\/v1/apiVersion: example.example.com\/v2/' | \
+  kubectl apply -f -
+
+# 3. Validar funcionamento
+kubectl get visitorsapps.v2.example.example.com
+
+# 4. Limpar CRs v1 antigos (opcional)
+kubectl delete visitorsapps.v1.example.example.com --all
+```
+
+### Vantagens desta Estratégia
+
+#### **Charts Limpos**
+- Cada imagem foca em sua versão específica
+- Sem código "morto" ou campos legacy desnecessários  
+- Values.yaml otimizado para cada versão
+
+#### **Versionamento Explícito**  
+- Tag da imagem = versão do chart + operator
+- Sem ambiguidade sobre qual versão está rodando
+- Facilita troubleshooting e auditoria
+
+#### **Rollback Simplificado**
+- Rollback = troca de imagem Docker
+- Não precisa reverter CRDs ou configurações
+- Teste de versões em paralelo
+
+#### **CI/CD Otimizado**
+```yaml
+# .github/workflows/operator.yml
+strategy:
+  matrix:
+    version: [v1.0, v2.0]
+    
+steps:
+- name: Build Operator ${{ matrix.version }}
+  run: |
+    git checkout ${{ matrix.version }}-chart
+    docker build -t mmacanmunhoz/controller-demo:${{ matrix.version }} .
+```
+
+### Exemplo de Uso
+
+#### Deploy v1.0 (Produção Estável)
+```yaml
+apiVersion: example.example.com/v1
+kind: VisitorsApp
+metadata:
+  name: prod-app
+spec:
+  backend:
+    size: 2
+  frontend:
+    title: "Production Site"
+```
+
+#### Deploy v2.0 (Features Avançadas)  
+```yaml
+apiVersion: example.example.com/v2
+kind: VisitorsApp
+metadata:
+  name: enhanced-app
+spec:
+  backend:
+    size: 5
+    version: "v2.1.0"
+  frontend:
+    title: "Enhanced Production Site"
+    replicas: 3
+  monitoring:
+    enabled: true
+    metrics: true
+```
+
+### Considerações
+
+#### **Manutenção**
+- Manter duas branches/imagens requer mais overhead
+- Patches de segurança podem precisar ser aplicados em ambas
+
+#### **Transição**
+- Período de grace para migration v1 → v2
+- Comunicação clara sobre deprecation timeline
+- Documentação de breaking changes
+
+**Esta estratégia garante evolução controlada e deployment confiável dos operators em produção.**
+
+---
+
 ## Arquivos Importantes
 
 ### `watches.yaml`

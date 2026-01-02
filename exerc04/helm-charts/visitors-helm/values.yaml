@@ -1,5 +1,11 @@
 backend:
-  size: 1
+  size: 3
+  version: "v1.2.0"
 
 frontend:
-  title: Helm Installed Visitors Site
+  title: "Enhanced Visitors Site v2"
+  replicas: 2
+
+monitoring:
+  enabled: true
+  metrics: true

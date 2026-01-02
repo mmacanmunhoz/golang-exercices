@@ -62,7 +62,7 @@ spec:
           - --leader-elect
           - --leader-election-id=exerc04
           - --health-probe-bind-address=:8081
-        image: mmacanmunhoz/controller-demo:v1.0
+        image: mmacanmunhoz/controller-demo:v1.1
         imagePullPolicy: Always
         name: manager
         ports: []

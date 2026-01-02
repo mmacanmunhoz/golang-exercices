@@ -1,0 +1,14 @@
+apiVersion: example.example.com/v2
+kind: VisitorsApp
+metadata:
+  name: visitorsapp-v2-sample
+spec:
+  backend:
+    size: 3
+    version: "v1.2.0"
+  frontend:
+    title: "Enhanced Visitors Site v2"
+    replicas: 2
+  monitoring:
+    enabled: true
+    metrics: true

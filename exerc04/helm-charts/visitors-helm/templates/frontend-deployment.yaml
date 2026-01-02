@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: visitors-frontend
 spec:
-  replicas: 1
+  replicas: {{ .Values.frontend.replicas }}
   selector:
     matchLabels:
       app: visitors
