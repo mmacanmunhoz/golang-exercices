@@ -3,7 +3,6 @@ kind: VisitorsApp
 metadata:
   name: visitorsapp-sample
 spec:
-  # Default values copied from <project_dir>/helm-charts/visitors-helm/values.yaml
   backend:
     size: 1
   frontend:
