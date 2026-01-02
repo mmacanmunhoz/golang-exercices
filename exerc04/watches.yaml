@@ -1,0 +1,6 @@
+# Use the 'create api' subcommand to add watches to this file.
+- group: example.example.com
+  version: v1
+  kind: VisitorsApp
+  chart: /home/matheusmunhoz/MeusProjetos/plataformrocks/exerc04/helm-charts/visitors-helm
+# +kubebuilder:scaffold:watch
