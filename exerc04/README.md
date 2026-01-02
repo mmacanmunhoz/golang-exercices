@@ -131,14 +131,14 @@ kubectl apply -k config/crd
 
 ### 4. Build e Deploy do Operator
 
-#### 4.1 Construção da imagem Docker
+#### 4.1 Construção e publicação da imagem Docker
 
 ```bash
 # Build da imagem
-docker build -t controller:latest .
+docker build -t mmacanmunhoz/controller-demo:latest .
 
-# Load no cluster Kind (para desenvolvimento local)
-kind load docker-image controller:latest
+# Push para DockerHub
+docker push mmacanmunhoz/controller-demo:latest
 ```
 
 #### 4.2 Deploy no cluster
@@ -148,9 +148,10 @@ kind load docker-image controller:latest
 kubectl apply -k config/default
 ```
 
-**Importante:** O arquivo `config/manager/manager.yaml` foi modificado para incluir:
+**Importante:** O arquivo `config/manager/manager.yaml` deve referenciar a imagem publicada:
 ```yaml
-imagePullPolicy: IfNotPresent  # Para usar imagem local no Kind
+image: mmacanmunhoz/controller-demo:latest
+imagePullPolicy: Always  # Para sempre buscar versão mais recente
 ```
 
 ### 5. Verificação do Deployment
@@ -455,10 +456,11 @@ strategy:
     version: [v1.0, v2.0]
     
 steps:
-- name: Build Operator ${{ matrix.version }}
+- name: Build and Push Operator ${{ matrix.version }}
   run: |
     git checkout ${{ matrix.version }}-chart
     docker build -t mmacanmunhoz/controller-demo:${{ matrix.version }} .
+    docker push mmacanmunhoz/controller-demo:${{ matrix.version }}
 ```
 
 ### Exemplo de Uso
@@ -585,17 +587,13 @@ kubectl describe pod -n exerc04-system -l control-plane=controller-manager
 
 ## Problemas Encontrados e Soluções
 
-### 1. **ImagePullBackOff**
-**Problema:** Pod não conseguia fazer pull da imagem `controller:latest`
-**Solução:** Build local + Kind load + `imagePullPolicy: IfNotPresent`
-
-### 2. **Path absoluto vs relativo**
+### 1. **Path absoluto vs relativo**
 **Problema:** `watches.yaml` com paths diferentes para execução local vs container
 **Solução:** 
 - `watches.yaml`: path relativo para container
 - `local-watches.yaml`: path absoluto para execução local
 
-### 3. **Estrutura do Helm Chart**
+### 2. **Estrutura do Helm Chart**
 **Problema:** Chart precisa estar na estrutura `helm-charts/visitors-helm/`
 **Solução:** Reorganizar diretórios conforme esperado pelo operator
 
@@ -611,7 +609,7 @@ kubectl describe pod -n exerc04-system -l control-plane=controller-manager
 - **Operator SDK v1.x** (helm plugin)
 - **Helm Operator** como runtime
 - **Kustomize** para organização de manifests
-- **Kind** para cluster local
+- **DockerHub** para registry de imagens
 - **Docker** para containerização
 
 ## Conceitos Aprendidos
