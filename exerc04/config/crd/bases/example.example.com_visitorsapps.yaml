@@ -42,3 +42,68 @@ spec:
     storage: true
     subresources:
       status: {}
+  - name: v2
+    schema:
+      openAPIV3Schema:
+        description: VisitorsApp v2 with enhanced schema validation
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec defines the desired state of VisitorsApp v2
+            type: object
+            properties:
+              backend:
+                type: object
+                properties:
+                  size:
+                    type: integer
+                    minimum: 1
+                    maximum: 10
+                    default: 1
+                  version:
+                    type: string
+                    default: "latest"
+                required:
+                - size
+              frontend:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    minLength: 1
+                    maxLength: 100
+                    default: "Visitors Site v2"
+                  replicas:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                    default: 1
+                required:
+                - title
+              # New Field
+              monitoring:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                    default: false
+                  metrics:
+                    type: boolean
+                    default: false
+            required:
+            - backend
+            - frontend
+          status:
+            description: Status defines the observed state of VisitorsApp v2
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        type: object
+    served: true
+    storage: false  # v1 ainda é storage por enquanto
+    subresources:
+      status: {}

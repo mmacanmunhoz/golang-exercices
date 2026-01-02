@@ -9,19 +9,19 @@ Este exercício contém **duas funcionalidades principais**:
 
 ```
 exerc04/
-├── cmd/                           # 🔧 CLI Kubernetes em Go (Cobra)
+├── cmd/                           # CLI Kubernetes em Go (Cobra)
 │   ├── k8s.go                     # Comando raiz 'k8s'
 │   ├── list-pods.go               # Subcomando 'list' para pods
 │   ├── root.go                    # Comando raiz principal
 │   └── list-pods_test.go          # Testes do CLI
-├── config/                        # ⚙️ Configurações Kubernetes (Kustomize)
+├── config/                        # Configurações Kubernetes (Kustomize)
 │   ├── crd/                       # Custom Resource Definitions
 │   ├── default/                   # Configuração padrão (namespace: exerc04-system)
 │   ├── manager/                   # Deployment do operator
 │   ├── rbac/                      # Roles e RoleBindings
 │   └── samples/                   # Exemplos de Custom Resources
 ├── helm-charts/
-│   └── visitors-helm/             # 📦 Helm Chart para o Operator
+│   └── visitors-helm/             # Helm Chart para o Operator
 ├── operator/                      # Chart original usado como base
 ├── watches.yaml                   # Configuração do helm-operator
 ├── Dockerfile                     # Container do operator
@@ -32,7 +32,7 @@ exerc04/
 
 ---
 
-## 🔧 PARTE 1: CLI Kubernetes em Go
+## PARTE 1: CLI Kubernetes em Go
 
 ### Funcionalidades do CLI
 
@@ -84,7 +84,7 @@ Testes abrangentes usando:
 
 ---
 
-## ⚙️ PARTE 2: Kubernetes Operator com Helm
+## PARTE 2: Kubernetes Operator com Helm
 │   ├── crd/                       # Custom Resource Definitions
 │   ├── default/                   # Configuração padrão (namespace: exerc04-system)
 │   ├── manager/                   # Deployment do operator
@@ -172,6 +172,153 @@ kubectl apply -f config/samples/example_v1_visitorsapp.yaml
 # Verificar se os recursos foram criados pelo Helm
 kubectl get all -l app.kubernetes.io/managed-by=Helm
 ```
+
+---
+
+## Versionamento de APIs (CRDs)
+
+### Como adicionar novas versões ao CRD
+
+Para **Helm Operators**, o versionamento é feito editando o CRD manualmente:
+
+#### 1. Editar o CRD base
+Arquivo: `config/crd/bases/example.example.com_visitorsapps.yaml`
+
+```yaml
+spec:
+  group: example.example.com
+  versions:
+  # Versão v1 (existente)
+  - name: v1
+    served: true
+    storage: true      # Versão de storage atual
+    schema: # ... schema v1
+    
+  # Nova versão v2 
+  - name: v2
+    served: true
+    storage: false     # Ainda não é storage
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              backend:
+                properties:
+                  size:
+                    type: integer
+                    minimum: 1      # Validações aprimoradas
+                    maximum: 10
+              monitoring:           # Novo campo em v2
+                properties:
+                  enabled:
+                    type: boolean
+```
+
+#### 2. Aplicar CRD atualizado
+```bash
+kubectl apply -k config/crd
+```
+
+#### 3. Testar múltiplas versões
+
+**CR v1 (formato original):**
+```yaml
+apiVersion: example.example.com/v1
+kind: VisitorsApp
+metadata:
+  name: visitorsapp-v1-sample
+spec:
+  backend:
+    size: 1
+  frontend:
+    title: "Site v1"
+```
+
+**CR v2 (formato aprimorado):**
+```yaml
+apiVersion: example.example.com/v2
+kind: VisitorsApp
+metadata:
+  name: visitorsapp-v2-sample
+spec:
+  backend:
+    size: 3
+    version: "v1.2.0"
+  frontend:
+    title: "Enhanced Site v2"
+    replicas: 2
+  monitoring:            # Campo disponível apenas em v2
+    enabled: true
+    metrics: true
+```
+
+#### 4. Comandos de teste
+
+```bash
+# Listar CRs de versões específicas
+kubectl get visitorsapps.v1.example.example.com
+kubectl get visitorsapps.v2.example.example.com
+
+# Verificar versões disponíveis
+kubectl api-resources | grep visitors
+
+# Aplicar CRs de diferentes versões
+kubectl apply -f config/samples/example_v1_visitorsapp.yaml
+kubectl apply -f - <<EOF
+apiVersion: example.example.com/v2
+kind: VisitorsApp
+metadata:
+  name: test-v2
+spec:
+  backend:
+    size: 5
+  frontend:
+    title: "Test v2"
+  monitoring:
+    enabled: true
+EOF
+```
+
+### Estratégias de Migration
+
+#### Deprecação gradual:
+1. **Adicionar v2** mantendo v1 como storage
+2. **Testar v2** em paralelo com v1
+3. **Migrar CRs** gradualmente para v2
+4. **Marcar v1 como deprecated**
+5. **Trocar storage** para v2
+6. **Remover v1** em release futuro
+
+#### Conversion (opcional):
+Para conversão automática entre versões, seria necessário implementar **conversion webhooks** - mais complexo para Helm operators.
+
+### Validações Avançadas em v2
+
+O schema v2 inclui validações aprimoradas:
+
+```yaml
+properties:
+  backend:
+    properties:
+      size:
+        minimum: 1        # Tamanho mínimo
+        maximum: 10       # Tamanho máximo
+      version:
+        pattern: '^v[0-9]+\.[0-9]+\.[0-9]+$'  # Formato semver
+  frontend:
+    properties:
+      title:
+        minLength: 1      # Não pode ser vazio
+        maxLength: 100    # Limite de caracteres
+required:
+- backend               # Campos obrigatórios
+- frontend
+```
+
+**Resultado**: Ambas versões funcionam simultaneamente no mesmo operator!
+
+---
 
 ## Arquivos Importantes
 
@@ -293,3 +440,11 @@ kubectl describe pod -n exerc04-system -l control-plane=controller-manager
 3. **CRDs** definem novos tipos de recursos no Kubernetes
 4. **RBAC** é gerado automaticamente baseado no Helm Chart
 5. **OLM** é opcional - pode deployar com kubectl diretamente
+
+### API Versioning
+1. **Múltiplas versões** podem coexistir no mesmo CRD
+2. **Validações OpenAPI** podem ser diferentes entre versões
+3. **Storage version** define qual versão é armazenada no etcd
+4. **Served versions** definem quais versões aceitam requests
+5. **Migration gradual** permite evolução sem breaking changes
+6. **Backward compatibility** mantém CRs antigos funcionando
